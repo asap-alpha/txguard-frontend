@@ -2,8 +2,11 @@
 // Static integrator-facing API reference. Kept in-app so an admin can walk a partner
 // through it or copy snippets; the live/interactive spec is Swagger at /swagger.
 import CodeBlock from '../components/CodeBlock.vue'
+import { API_BASE } from '../config'
 
-const base = `${window.location.origin}/api/v1`
+// Prefer the configured API origin so partner-facing snippets show the real backend
+// URL; fall back to the current origin in dev where the SPA is same-origin with the API.
+const base = `${API_BASE || window.location.origin}/api/v1`
 
 // ── Copyable snippets ───────────────────────────────────────────────────────
 const submitBody = `{

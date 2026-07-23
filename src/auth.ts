@@ -1,5 +1,6 @@
 import { computed, reactive } from 'vue'
 import axios from 'axios'
+import { API_BASE } from './config'
 
 export type Role = 'Admin' | 'Analyst' | 'Integrator'
 
@@ -43,7 +44,7 @@ export const can = {
 }
 
 export async function login(username: string, password: string): Promise<void> {
-  const { data } = await axios.post<Session>('/api/v1/auth/login', { username, password })
+  const { data } = await axios.post<Session>(`${API_BASE}/api/v1/auth/login`, { username, password })
   state.session = data
   localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
 }

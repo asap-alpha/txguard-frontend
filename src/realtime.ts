@@ -1,6 +1,7 @@
 import * as signalR from '@microsoft/signalr'
 import { ref } from 'vue'
 import { token } from './auth'
+import { API_BASE } from './config'
 
 /**
  * Shared SignalR connection to the TxGuard hub. Components subscribe to
@@ -9,7 +10,7 @@ import { token } from './auth'
  * send an Authorization header).
  */
 const connection = new signalR.HubConnectionBuilder()
-  .withUrl('/hubs/transactions', { accessTokenFactory: () => token() ?? '' })
+  .withUrl(`${API_BASE}/hubs/transactions`, { accessTokenFactory: () => token() ?? '' })
   .withAutomaticReconnect()
   .build()
 

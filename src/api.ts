@@ -1,7 +1,8 @@
 import axios from 'axios'
 import { token, logout } from './auth'
+import { API_BASE } from './config'
 
-const http = axios.create({ baseURL: '/api/v1' })
+const http = axios.create({ baseURL: `${API_BASE}/api/v1` })
 
 // Attach the bearer token to every request when signed in.
 http.interceptors.request.use(config => {
