@@ -5,6 +5,7 @@ import { api } from './api'
 import { connected, onTransactionChanged, stopRealtime } from './realtime'
 import { session, isAuthenticated, can, logout as doLogout } from './auth'
 import { resolvedTheme, toggleTheme } from './theme'
+import { TEMPORAL_UI_URL } from './config'
 
 const route = useRoute()
 const router = useRouter()
@@ -57,7 +58,7 @@ onUnmounted(() => { off?.(); if (timer) clearInterval(timer) })
           <RouterLink v-if="can.demo()" to="/api-keys"><span class="ico">🔑</span> API Keys</RouterLink>
           <RouterLink v-if="can.demo()" to="/integration"><span class="ico">◧</span> Integration Guide</RouterLink>
           <RouterLink v-if="can.demo()" to="/demo"><span class="ico">⚡</span> Demo Controls</RouterLink>
-          <a href="http://localhost:8088" target="_blank"><span class="ico">⚙</span> Temporal UI ↗</a>
+          <a :href="TEMPORAL_UI_URL" target="_blank"><span class="ico">⚙</span> Temporal UI ↗</a>
         </div>
       </nav>
 
