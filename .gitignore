@@ -1,0 +1,35 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Local env config. Vite loads .env, .env.[mode] and their .local variants;
+# `*.local` above only covers the last of those. Templates stay committed.
+.env
+.env.*
+!.env.example
+!.env.template
+
+# TypeScript incremental build cache. tsconfig currently points this at
+# node_modules/.tmp, but catch it here too if that config ever changes.
+*.tsbuildinfo
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
