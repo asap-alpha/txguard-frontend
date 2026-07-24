@@ -49,7 +49,8 @@ export interface AuditEvent {
   previousState: string | null; newState: string | null
   details: string | null; dataJson: string | null; timestampUtc: string
 }
-export interface TransactionDetail { transaction: Transaction; events: AuditEvent[] }
+export interface RefundLink { transactionId: string; state: string }
+export interface TransactionDetail { transaction: Transaction; events: AuditEvent[]; refund: RefundLink | null }
 export interface Paged<T> { items: T[]; page: number; pageSize: number; total: number }
 export interface Overview {
   inFlight: number; fraudQueue: number; completedToday: number
