@@ -7,6 +7,7 @@ const routes = [
   { path: '/overview', component: () => import('./views/OverviewView.vue') },
   { path: '/transactions', component: () => import('./views/TransactionsView.vue') },
   { path: '/transactions/:id', component: () => import('./views/TransactionDetailView.vue') },
+  { path: '/refunds', component: () => import('./views/RefundsView.vue') },
   { path: '/submit', component: () => import('./views/SubmitView.vue'), meta: { roles: ['Integrator', 'Admin'] as Role[] } },
   { path: '/fraud-review', component: () => import('./views/FraudReviewView.vue'), meta: { roles: ['Analyst', 'Admin'] as Role[] } },
   { path: '/audit', component: () => import('./views/AuditLogView.vue') },

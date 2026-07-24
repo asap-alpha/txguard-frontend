@@ -1,8 +1,14 @@
 <script setup lang="ts">
 // Static integrator-facing API reference. Kept in-app so an admin can walk a partner
 // through it or copy snippets; the live/interactive spec is Swagger at /swagger.
+import { ref, onMounted } from 'vue'
 import CodeBlock from '../components/CodeBlock.vue'
+import { api, money, type Meta } from '../api'
 import { API_BASE } from '../config'
+
+// Live operational limits, so the guide always shows what the API actually enforces.
+const meta = ref<Meta | null>(null)
+onMounted(async () => { try { meta.value = await api.meta() } catch { /* guide still renders without it */ } })
 
 // Prefer the configured API origin so partner-facing snippets show the real backend
 // URL; fall back to the current origin in dev where the SPA is same-origin with the API.
@@ -160,6 +166,11 @@ Partner ◄── GET /transactions/{id} (poll status) ───┘</pre>
     <p><span class="verb post">POST</span> <code>/transactions</code> — roles: Integrator, Admin</p>
     <p class="dim">Amounts are integer <strong>minor units</strong> (pesewas): GH₵50.00 = <code>5000</code>.
       Always send your own <code>idempotencyKey</code> so retries are safe.</p>
+    <div v-if="meta" class="limit">
+      <span class="lbl">Maximum per transaction</span>
+      <span class="amt">{{ money(meta.maxAmountMinor, meta.currency) }}</span>
+      <span class="dim">Amounts above this are rejected with <code>TXG-007</code>.</span>
+    </div>
     <div class="cols">
       <div>
         <div class="lbl">Request</div>
@@ -278,4 +289,11 @@ pre.flow { font-size: 12px; }
 .tbl th { text-align: left; font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; padding: 6px 10px; border-bottom: 1px solid var(--border); }
 .tbl td { padding: 9px 10px; border-bottom: 1px solid var(--border); }
 .badge.ok { color: var(--green, #4ade80); }
+.limit { display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px 12px;
+  margin: 4px 0 12px; padding: 10px 14px; border-radius: 8px;
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--accent) 8%, transparent); }
+.limit .lbl { margin: 0; }
+.limit .amt { font-size: 20px; font-weight: 700; color: var(--accent);
+  font-variant-numeric: tabular-nums; }
 </style>

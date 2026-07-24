@@ -43,6 +43,7 @@ onUnmounted(() => { off?.(); if (timer) clearInterval(timer) })
           <h4>Operations</h4>
           <RouterLink to="/overview"><span class="ico">▚</span> Overview</RouterLink>
           <RouterLink to="/transactions"><span class="ico">≡</span> Transactions</RouterLink>
+          <RouterLink to="/refunds"><span class="ico">↩</span> Refunds</RouterLink>
           <RouterLink v-if="can.decideFraud()" to="/fraud-review">
             <span class="ico">⚑</span> Fraud Review
             <span v-if="fraudQueue > 0" class="badge-count">{{ fraudQueue }}</span>

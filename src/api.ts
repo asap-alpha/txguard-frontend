@@ -42,6 +42,7 @@ export interface Transaction {
   state: string; failureReason: string | null; retries: number
   riskScore: number | null; riskLevel: string | null; fraudModelVersion: string | null
   createdAtUtc: string; updatedAtUtc: string
+  reference: string | null
 }
 export interface AuditEvent {
   id: number; transactionId: string; eventType: string
@@ -57,11 +58,21 @@ export interface Overview {
 }
 
 // ── Endpoints ───────────────────────────────────────────────────────────────
+export interface Meta {
+  maxAmountMinor: number
+  currency: string
+  lowRiskThreshold: number
+  highRiskThreshold: number
+  idempotencyWindowHours: number
+}
+
 export const api = {
+  meta: () => http.get<Meta>('/meta').then(r => r.data),
+
   overview: () => http.get<Overview>('/overview').then(r => r.data),
 
-  listTransactions: (status?: string, page = 1, pageSize = 50) =>
-    http.get<Paged<Transaction>>('/transactions', { params: { status, page, pageSize } }).then(r => r.data),
+  listTransactions: (status?: string, page = 1, pageSize = 50, type?: string) =>
+    http.get<Paged<Transaction>>('/transactions', { params: { status, page, pageSize, type } }).then(r => r.data),
 
   getTransaction: (id: string) =>
     http.get<TransactionDetail>(`/transactions/${id}`).then(r => r.data),
