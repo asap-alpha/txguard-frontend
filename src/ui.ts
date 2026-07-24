@@ -20,3 +20,17 @@ export const label = (s: string) => s.replace(/([a-z])([A-Z])/g, '$1 $2').replac
 
 // Event type -> label, e.g. DEBIT_SUCCEEDED already upper — keep readable
 export const eventLabel = (s: string) => s.replace(/([a-z])([A-Z])/g, '$1 $2')
+
+// Audit-event tone, so the timeline reads at a glance instead of every step looking
+// like a success. A reversal/retry/escalation is a *recovery* step (amber), not a win —
+// this is what stops "Debit Reversed" from looking green while the transaction Failed.
+const EVENT_TONE: Record<string, 'ok' | 'bad' | 'warn' | 'info'> = {
+  TransactionCreated: 'info', FraudScored: 'info',
+  FraudReviewQueued: 'warn', FraudApproved: 'ok', FraudRejected: 'bad',
+  DebitInitiated: 'info', DebitSucceeded: 'ok', DebitFailed: 'bad',
+  CreditInitiated: 'info', CreditSucceeded: 'ok', CreditFailed: 'bad',
+  RetryScheduled: 'warn', ReversalInitiated: 'warn', DebitReversed: 'warn',
+  ReversalFailed: 'bad', ManualReviewEscalated: 'warn', TransactionCompleted: 'ok',
+}
+
+export const eventTone = (t: string) => EVENT_TONE[t] ?? 'info'
