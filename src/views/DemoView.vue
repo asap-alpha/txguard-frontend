@@ -12,21 +12,34 @@ const rates = ref<BankingRates>({
   debitTransientFailureRate: 0, creditTransientFailureRate: 0,
   creditPermanentFailureRate: 0, reversalPermanentFailureRate: 0, latencyMs: 150,
 })
-/** Don't stomp on what the user is typing while the poll refreshes. */
-const editingRates = ref(false)
+/**
+ * The form is user-owned: we seed it from the server ONCE (first load, or after a
+ * reset re-arms this flag), then never let the background poll stomp what the admin
+ * typed or applied. The live server-side values stay visible via the "Active" readout
+ * below, so nothing is hidden — the inputs just stop silently snapping back.
+ */
+const formSeeded = ref(false)
+
+/** Copies the five banking-rate fields off a status/response payload. */
+function pickRates(s: BankingRates): BankingRates {
+  return {
+    debitTransientFailureRate: s.debitTransientFailureRate,
+    creditTransientFailureRate: s.creditTransientFailureRate,
+    creditPermanentFailureRate: s.creditPermanentFailureRate,
+    reversalPermanentFailureRate: s.reversalPermanentFailureRate,
+    latencyMs: s.latencyMs,
+  }
+}
 
 async function refresh() {
   try {
     const s = await demo.status()
     status.value = s
-    if (!editingRates.value) {
-      rates.value = {
-        debitTransientFailureRate: s.debitTransientFailureRate,
-        creditTransientFailureRate: s.creditTransientFailureRate,
-        creditPermanentFailureRate: s.creditPermanentFailureRate,
-        reversalPermanentFailureRate: s.reversalPermanentFailureRate,
-        latencyMs: s.latencyMs,
-      }
+    // Seed the editable form from the server only until the admin first touches it;
+    // after that the form holds what THEY set and the poll only updates the readout.
+    if (!formSeeded.value) {
+      rates.value = pickRates(s)
+      formSeeded.value = true
     }
     unavailable.value = false
   } catch (e: any) {
@@ -59,6 +72,7 @@ const normalFraud = () => run('fraud',
 
 function applyRates(next: BankingRates, message: string) {
   rates.value = next
+  formSeeded.value = true   // these are now the admin's chosen values — poll must not overwrite them
   return run('bank', () => demo.setBankingRates(next), message)
 }
 
@@ -79,7 +93,7 @@ const reliableBank = () => applyRates(
   'Banking rail is now perfectly reliable — transactions sail straight through.')
 
 const saveRates = () => {
-  editingRates.value = false
+  formSeeded.value = true   // keep the applied values in the form; don't let the poll reset them
   return run('bank', () => demo.setBankingRates(rates.value), 'Banking rates updated.')
 }
 
@@ -91,7 +105,10 @@ const toggleWorker = () => status.value?.workerRunning
   ? run('worker', demo.stopWorker, 'Worker stopped. Submit now — the workflow queues durably in Temporal and nothing is persisted yet.')
   : run('worker', demo.startWorker, 'Worker started — queued workflows resume exactly where they left off.')
 
-const resetAll = () => run('reset', demo.reset, 'Everything reset to configured defaults.')
+const resetAll = () => {
+  formSeeded.value = false   // reset re-arms seeding so the form snaps to the restored defaults
+  return run('reset', demo.reset, 'Everything reset to configured defaults.')
+}
 
 let timer: number | undefined
 onMounted(() => { refresh(); timer = window.setInterval(refresh, 4000) })
@@ -186,35 +203,41 @@ onUnmounted(() => { if (timer) clearInterval(timer) })
           <label>
             <span>Debit transient</span>
             <input type="number" step="0.05" min="0" max="1"
-                   v-model.number="rates.debitTransientFailureRate"
-                   @focus="editingRates = true" />
+                   v-model.number="rates.debitTransientFailureRate" />
           </label>
           <label>
             <span>Credit transient</span>
             <input type="number" step="0.05" min="0" max="1"
-                   v-model.number="rates.creditTransientFailureRate"
-                   @focus="editingRates = true" />
+                   v-model.number="rates.creditTransientFailureRate" />
           </label>
           <label>
             <span>Credit permanent</span>
             <input type="number" step="0.05" min="0" max="1"
-                   v-model.number="rates.creditPermanentFailureRate"
-                   @focus="editingRates = true" />
+                   v-model.number="rates.creditPermanentFailureRate" />
           </label>
           <label>
             <span>Reversal permanent</span>
             <input type="number" step="0.05" min="0" max="1"
-                   v-model.number="rates.reversalPermanentFailureRate"
-                   @focus="editingRates = true" />
+                   v-model.number="rates.reversalPermanentFailureRate" />
           </label>
           <label>
             <span>Latency (ms)</span>
             <input type="number" step="50" min="0" max="10000"
-                   v-model.number="rates.latencyMs"
-                   @focus="editingRates = true" />
+                   v-model.number="rates.latencyMs" />
           </label>
         </div>
         <p class="rate-hint">Rates are probabilities from 0 (never) to 1 (always).</p>
+
+        <!-- Live server-side values, so the admin always sees what's actually applied
+             even after editing the form or an auto-refresh. -->
+        <p v-if="status" class="rate-active">
+          <span class="rate-active-label">Active now:</span>
+          debit {{ status.debitTransientFailureRate }} ·
+          credit {{ status.creditTransientFailureRate }} ·
+          credit-perm {{ status.creditPermanentFailureRate }} ·
+          reversal-perm {{ status.reversalPermanentFailureRate }} ·
+          latency {{ status.latencyMs }}ms
+        </p>
 
         <div class="demo-actions">
           <button class="btn-primary" :disabled="busy === 'bank'" @click="saveRates">Apply rates</button>
@@ -254,5 +277,11 @@ onUnmounted(() => { if (timer) clearInterval(timer) })
 .rate-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-bottom: 6px; }
 .rate-grid label { display: flex; flex-direction: column; gap: 5px; }
 .rate-grid span { font-size: 12px; color: var(--muted); }
-.rate-hint { font-size: 12px; color: var(--muted); margin: 0 0 14px; }
+.rate-hint { font-size: 12px; color: var(--muted); margin: 0 0 8px; }
+.rate-active {
+  font-size: 12px; color: var(--muted); margin: 0 0 14px;
+  padding: 7px 10px; border: 1px solid var(--border); border-radius: 8px;
+  background: color-mix(in srgb, var(--accent) 6%, transparent);
+}
+.rate-active-label { color: var(--accent); font-weight: 600; margin-right: 4px; }
 </style>
