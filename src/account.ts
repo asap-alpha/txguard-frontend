@@ -12,6 +12,7 @@ export const PROVIDERS: ReadonlyArray<{ name: string; kind: ProviderKind }> = [
   { name: 'Ecobank', kind: 'bank' },
 ]
 
+
 // Unknown providers fall back to the looser bank rule rather than rejecting
 // outright, so adding a provider to the backend can't block submissions here.
 export function providerKind(provider: string): ProviderKind {
@@ -34,6 +35,7 @@ function clean(raw: string): string {
   return raw.replace(/[\s()-]/g, '')
 }
 
+
 /**
  * Returns a Ghana mobile number in local 10-digit form (0XXXXXXXXX), or null if
  * it is not a valid Ghanaian mobile number.
@@ -48,6 +50,7 @@ export function normalizeGhanaNumber(raw: string): string | null {
   return n
 }
 
+
 function normalizeBankAccount(raw: string): string | null {
   const n = clean(raw)
   return new RegExp(`^\\d{${BANK_MIN_DIGITS},${BANK_MAX_DIGITS}}$`).test(n) ? n : null
@@ -59,6 +62,7 @@ export function normalizeAccountNumber(raw: string, provider: string): string | 
     ? normalizeGhanaNumber(raw)
     : normalizeBankAccount(raw)
 }
+
 
 /** Human-readable reason the number is rejected, or '' when it is valid. */
 export function accountNumberError(raw: string, provider: string): string {
